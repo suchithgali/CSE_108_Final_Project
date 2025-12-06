@@ -48,7 +48,7 @@
 
                 {% if session.user_id == playlist.user_id %}
                     <div class="playlist-actions">
-                        <form action="/add_song/{{ playlist.id }}" method="post" class="add-song-form">
+                        <form action="/add_song/{{ playlist.id }}" method="post" class="add-song-form" enctype="multipart/form-data">
                             <div class="form-group">
                                 <label for="artist">Artist:</label>
                                 <input type="text" id="artist" name="artist" placeholder="e.g. Wham!" required>
@@ -56,6 +56,16 @@
                             <div class="form-group">
                                 <label for="song_title">Song:</label>
                                 <input type="text" id="song_title" name="song_title" placeholder="e.g. Last Christmas" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="audio_file">Audio File (optional):</label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="audio_file" name="audio_file" accept="audio/*" class="file-input">
+                                    <label for="audio_file" class="file-input-label">
+                                        <span class="file-input-button">Choose File</span>
+                                        <span class="file-input-text">No file chosen</span>
+                                    </label>
+                                </div>
                             </div>
                             <button type="submit" class="btn-primary">Add Song</button>
                         </form>

@@ -1,7 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     setupVoteButtons();
     setupMusicPlayer();
+    setupFileInput();
 });
+
+
+function setupFileInput() {
+    var fileInput = document.getElementById('audio_file');
+    if (fileInput) {
+        var fileInputText = fileInput.parentElement.querySelector('.file-input-text');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                fileInputText.textContent = this.files[0].name;
+                fileInputText.style.color = '#e0e0e0';
+            } else {
+                fileInputText.textContent = 'No file chosen';
+                fileInputText.style.color = '#888';
+            }
+        });
+    }
+}
 
 
 function setupVoteButtons() {
@@ -315,19 +334,37 @@ function formatTime(seconds) {
 
 
 function parseSongTitle(fullTitle) {
-    var lastDash = fullTitle.lastIndexOf(' - ');
+    // Remove file path if present (format: "Artist - Song Title|file_path")
+    var pipeIndex = fullTitle.lastIndexOf('|');
+    var titleToParse = fullTitle;
+    if (pipeIndex > 0) {
+        titleToParse = fullTitle.substring(0, pipeIndex);
+    }
+    
+    var lastDash = titleToParse.lastIndexOf(' - ');
     
     if (lastDash > 0) {
-        var artist = fullTitle.substring(0, lastDash).trim();
-        var song = fullTitle.substring(lastDash + 3).trim();
+        var artist = titleToParse.substring(0, lastDash).trim();
+        var song = titleToParse.substring(lastDash + 3).trim();
         return { artist: artist, song: song };
     }
     
-    return { artist: 'Unknown Artist', song: fullTitle.trim() };
+    return { artist: 'Unknown Artist', song: titleToParse.trim() };
 }
 
 
 function getAudioFilePath(songTitle, genre) {
+    // Check if song has an uploaded file path (format: "Artist - Song Title|file_path")
+    var pipeIndex = songTitle.lastIndexOf('|');
+    if (pipeIndex > 0) {
+        var filePath = songTitle.substring(pipeIndex + 1);
+        // If it's a valid path (starts with /static/), use it
+        if (filePath.startsWith('/static/')) {
+            return filePath;
+        }
+    }
+    
+    // Otherwise, use default path based on genre
     var songInfo = parseSongTitle(songTitle);
     var fileName = songInfo.artist + ' - ' + songInfo.song;
     fileName = fileName.replace(/[<>:"/\\|?*]/g, '');
