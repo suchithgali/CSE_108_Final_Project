@@ -140,6 +140,21 @@ function setupMusicPlayer() {
     
     for (var i = 0; i < songItems.length; i++) {
         songItems[i].addEventListener('click', handleSongClick);
+        
+        // Prevent delete button from triggering song playback
+        var deleteForm = songItems[i].querySelector('.delete-song-form');
+        if (deleteForm) {
+            deleteForm.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            var deleteBtn = deleteForm.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        }
     }
     
     for (var i = 0; i < songItems.length; i++) {
@@ -186,7 +201,12 @@ function createAudioElement() {
 }
 
 
-function handleSongClick() {
+function handleSongClick(event) {
+    // Don't play if clicking on delete button or form
+    if (event.target.closest('.delete-song-form') || event.target.closest('.delete-btn')) {
+        return;
+    }
+    
     var songName = this.dataset.song;
     currentGenre = this.dataset.genre;
     
