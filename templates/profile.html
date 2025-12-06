@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Profile - PlaylistHub</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">PlaylistHub</a>
+        <div class="nav-links">
+            <a href="/create">+ Create Playlist</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="profile-section">
+            <div class="profile-header">
+                <div class="avatar">{{ user.username[0] | upper }}</div>
+                <div class="profile-info">
+                    <h1>{{ user.username }}</h1>
+                    <p class="member-since">Member since {{ user.created_at.strftime('%B %Y') }}</p>
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <div class="stat">
+                    <span class="stat-number">{{ playlist_data | length }}</span>
+                    <span class="stat-label">Playlists</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">{{ playlist_data | sum(attribute='vote_count') }}</span>
+                    <span class="stat-label">Total Votes</span>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">My Playlists</h2>
+
+        <div class="playlists-grid">
+
+            {% for item in playlist_data %}
+                <div class="playlist-card">
+
+                    <div class="vote-section">
+                        <span class="vote-count">{{ item.vote_count }}</span>
+                        <span class="votes-label">votes</span>
+                    </div>
+
+                    <div class="playlist-info">
+                        <a href="/playlist/{{ item.playlist.id }}">
+                            <h3>{{ item.playlist.title }}</h3>
+                        </a>
+                        <span class="genre-badge">{{ item.playlist.genre }}</span>
+                        <p class="playlist-desc">
+                            {% if item.playlist.description %}
+                                {{ item.playlist.description[:100] }}
+                                {% if item.playlist.description | length > 100 %}...{% endif %}
+                            {% endif %}
+                        </p>
+                        <form method="POST" action="/delete/{{ item.playlist.id }}" class="delete-form">
+                            <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this playlist?')">Delete</button>
+                        </form>
+                    </div>
+
+                </div>
+            {% endfor %}
+            
+            {% if not playlist_data %}
+                <div class="empty-state">
+                    <h2>No playlists yet</h2>
+                    <p>Create your first playlist and share it with the world!</p>
+                    <a href="/create" class="btn-primary">Create Playlist</a>
+                </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+</html>

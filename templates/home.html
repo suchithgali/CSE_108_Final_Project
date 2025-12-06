@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PlaylistHub</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">PlaylistHub</a>
+        <div class="nav-links">
+            {% if session.user_id %}
+                <a href="/create">+ Create Playlist</a>
+                <a href="/profile">My Profile</a>
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/signup">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="hero">
+            <h1>Discover & Share Playlists</h1>
+            <p>Find your next favorite playlist or share yours with the world</p>
+        </div>
+
+        <div class="filters">
+            <form method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Search playlists...">
+                <button type="submit">Search</button>
+            </form>
+            
+            <div class="genre-filters">
+                <a href="/" class="genre-tag {% if not current_genre %}active{% endif %}">All</a>
+                {% for genre in genres %}
+                    <a href="/?genre={{ genre|urlencode }}" class="genre-tag {% if current_genre == genre %}active{% endif %}">{{ genre }}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="playlists-grid">
+            {% for item in playlist_data %}
+                <div class="playlist-card">
+
+                    {% if session.user_id and session.user_id != item.playlist.user_id %}
+                        <div class="vote-section">
+                            <button class="vote-btn upvote {% if item.user_vote == 1 %}voted{% endif %}" data-id="{{ item.playlist.id }}" data-value="1">▲</button>
+                            <span class="vote-count" data-id="{{ item.playlist.id }}">{{ item.vote_count }}</span>
+                            <button class="vote-btn downvote {% if item.user_vote == -1 %}voted{% endif %}" data-id="{{ item.playlist.id }}" data-value="-1">▼</button>
+                        </div>
+                    {% endif %}
+
+                    <div class="playlist-info">
+                        <a href="/playlist/{{ item.playlist.id }}">
+                            <h3>{{ item.playlist.title }}</h3>
+                        </a>
+                        <span class="genre-badge">{{ item.playlist.genre }}</span>
+                        <p class="playlist-desc">
+                            {% if item.playlist.description %}
+                                {{ item.playlist.description[:100] }}
+                                {% if item.playlist.description|length > 100 %}...{% endif %}
+                            {% endif %}
+                        </p>
+                        <div class="playlist-meta">
+                            <span>by {{ item.playlist.author.username }}</span>
+                            <span>{{ item.playlist.created_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+            
+            {% if not playlist_data %}
+                <div class="empty-state">
+                    <h2>No playlists found</h2>
+                    <p>Be the first to share a playlist!</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

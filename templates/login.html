@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - PlaylistHub</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">PlaylistHub</a>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-box">
+
+            <h1>Welcome Back</h1>
+            <p class="auth-subtitle">Login to share and discover playlists</p>
+            
+            {% if error %}
+                <div class="error-msg">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="/login">
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Login</button>
+
+            </form>
+            
+            <div class="profile-info">
+                <h2>All Test Accounts</h2>
+                {% for account in users %}
+                    <div class="account-info">
+                        <p><strong>Username:</strong> {{ account.username }}</p>
+                        <p><strong>Password:</strong> {{ account.plain_password or 'Not available' }}</p>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+            
+            <p class="auth-switch">Don't have an account? <a href="/signup">Sign up</a></p>
+
+        </div>
+    </div>
+
+    <script>console.log("Users data:", {{ users | tojson }})</script>
+</body>
+</html>
