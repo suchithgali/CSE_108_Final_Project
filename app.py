@@ -12,16 +12,14 @@ db = SQLAlchemy(app)
 
 GENRES = ['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'R&B', 'Country', 'Jazz', 'Classical', 'Indie', 'K-Pop']
 
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    plain_password = db.Column(db.String(200), nullable=True)  # For testing display
+    plain_password = db.Column(db.String(200), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     playlists = db.relationship('Playlist', backref='author')
     votes = db.relationship('Vote', backref='user')
-
 
 class Playlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,17 +31,14 @@ class Playlist(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     votes = db.relationship('Vote', backref='playlist')
 
-
 class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
     value = db.Column(db.Integer, nullable=False)
 
-
 with app.app_context():
     db.create_all()
-    # Hash any existing plain passwords
     users = User.query.all()
     for user in users:
         if user.password and not user.password.startswith('pbkdf2'):
@@ -51,7 +46,6 @@ with app.app_context():
             print("Hashed existing password:", user.password)
             db.session.commit()
     
-    # Create demo accounts if none exist
     if User.query.count() == 0:
         import random
         import string
@@ -64,11 +58,12 @@ with app.app_context():
             db.session.add(demo_user)
         db.session.commit()
 
-
 def get_vote_count(playlist):
     result = db.session.query(db.func.sum(Vote.value)).filter_by(playlist_id=playlist.id).scalar()
-    return result if result is not None else 0
-
+    if result is not None:
+        return result
+    else:
+        return 0
 
 def get_user_vote(playlist_id):
     if 'user_id' not in session:
@@ -76,16 +71,17 @@ def get_user_vote(playlist_id):
     vote = Vote.query.filter_by(user_id=session['user_id'], playlist_id=playlist_id).first()
     if vote:
         return vote.value
-    return 0
-
+    else:
+        return 0
 
 def is_logged_in():
-    return 'user_id' in session
-
+    if 'user_id' in session:
+        return True
+    else:
+        return False
 
 def get_current_user_id():
     return session.get('user_id')
-
 
 @app.route('/')
 def home():
@@ -97,23 +93,25 @@ def home():
     filtered_playlists = []
     for playlist in all_playlists:
         print(f"Playlist: {playlist.title}, Genre: {playlist.genre}")
-        if genre_filter and playlist.genre.strip().lower() != genre_filter.strip().lower():
-            continue
-        if search_text and search_text.lower() not in playlist.title.lower():
-            continue
-        filtered_playlists.append(playlist)
+        should_include = True
+        if genre_filter:
+            if playlist.genre.strip().lower() != genre_filter.strip().lower():
+                should_include = False
+        if search_text:
+            if search_text.lower() not in playlist.title.lower():
+                should_include = False
+        if should_include:
+            filtered_playlists.append(playlist)
     
     playlist_data = []
     for playlist in filtered_playlists:
-        data = {
-            'playlist': playlist,
-            'vote_count': get_vote_count(playlist),
-            'user_vote': get_user_vote(playlist.id)
-        }
+        data = {}
+        data['playlist'] = playlist
+        data['vote_count'] = get_vote_count(playlist)
+        data['user_vote'] = get_user_vote(playlist.id)
         playlist_data.append(data)
     
     return render_template('home.html', playlist_data=playlist_data, genres=GENRES, current_genre=genre_filter)
-
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -135,7 +133,6 @@ def signup():
     
     return redirect(url_for('login'))
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -143,7 +140,13 @@ def login():
         if is_logged_in():
             user = User.query.get(get_current_user_id())
         all_users = User.query.all()
-        users = [{'username': u.username, 'password': u.password, 'plain_password': u.plain_password} for u in all_users]
+        users = []
+        for u in all_users:
+            user_dict = {}
+            user_dict['username'] = u.username
+            user_dict['password'] = u.password
+            user_dict['plain_password'] = u.plain_password
+            users.append(user_dict)
         return render_template('login.html', user=user, users=users)
     
     username = request.form['username']
@@ -151,21 +154,26 @@ def login():
     
     user = User.query.filter_by(username=username).first()
     
-    if user and (check_password_hash(user.password, password) or user.password == password):
-        session['user_id'] = user.id
-        session['username'] = user.username
-        return redirect(url_for('home'))
+    if user:
+        if check_password_hash(user.password, password) or user.password == password:
+            session['user_id'] = user.id
+            session['username'] = user.username
+            return redirect(url_for('home'))
     
     all_users = User.query.all()
-    users = [{'username': u.username, 'password': u.password, 'plain_password': u.plain_password} for u in all_users]
+    users = []
+    for u in all_users:
+        user_dict = {}
+        user_dict['username'] = u.username
+        user_dict['password'] = u.password
+        user_dict['plain_password'] = u.plain_password
+        users.append(user_dict)
     return render_template('login.html', error='Invalid username or password', users=users)
-
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
-
 
 @app.route('/create', methods=['GET', 'POST'])
 def create_playlist():
@@ -192,7 +200,6 @@ def create_playlist():
     
     return redirect(url_for('home'))
 
-
 @app.route('/playlist/<int:id>')
 def view_playlist(id):
     playlist = Playlist.query.get_or_404(id)
@@ -212,7 +219,6 @@ def view_playlist(id):
         user_vote=get_user_vote(id),
         songs_list=songs_list
     )
-
 
 @app.route('/vote/<int:playlist_id>/<value>', methods=['POST'])
 def vote(playlist_id, value):
@@ -239,11 +245,11 @@ def vote(playlist_id, value):
     
     playlist = Playlist.query.get(playlist_id)
     
-    return jsonify({
-        'vote_count': get_vote_count(playlist),
-        'user_vote': get_user_vote(playlist_id)
-    })
-
+    response_data = {}
+    response_data['vote_count'] = get_vote_count(playlist)
+    response_data['user_vote'] = get_user_vote(playlist_id)
+    
+    return jsonify(response_data)
 
 @app.route('/add_song/<int:playlist_id>', methods=['POST'])
 def add_song(playlist_id):
@@ -270,7 +276,6 @@ def add_song(playlist_id):
     
     return redirect(url_for('view_playlist', id=playlist_id))
 
-
 @app.route('/delete_song/<int:playlist_id>/<int:song_index>', methods=['POST'])
 def delete_song(playlist_id, song_index):
     if not is_logged_in():
@@ -295,7 +300,6 @@ def delete_song(playlist_id, song_index):
     
     return redirect(url_for('view_playlist', id=playlist_id))
 
-
 @app.route('/profile')
 def profile():
     if not is_logged_in():
@@ -306,14 +310,12 @@ def profile():
     
     playlist_data = []
     for playlist in user_playlists:
-        data = {
-            'playlist': playlist,
-            'vote_count': get_vote_count(playlist)
-        }
+        data = {}
+        data['playlist'] = playlist
+        data['vote_count'] = get_vote_count(playlist)
         playlist_data.append(data)
     
     return render_template('profile.html', user=user, playlist_data=playlist_data)
-
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_playlist(id):
@@ -330,7 +332,6 @@ def delete_playlist(id):
     db.session.commit()
     
     return redirect(url_for('profile'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)
