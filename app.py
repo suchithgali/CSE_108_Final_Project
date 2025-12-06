@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 app = Flask(__name__)
+app.static_folder = 'public/static'
 app.secret_key = 'your-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///playlisthub.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
