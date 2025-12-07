@@ -271,33 +271,32 @@ def add_song(playlist_id):
     song_title = request.form['song_title'].strip()
     file_path = None
     
-    # Handle file upload if provided
+  
     if 'audio_file' in request.files:
         audio_file = request.files['audio_file']
         if audio_file and audio_file.filename:
-            # Create upload directory structure: uploads/user_id/playlist_id/
+            
             upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{get_current_user_id()}', f'playlist_{playlist_id}')
             os.makedirs(upload_dir, exist_ok=True)
             
-            # Generate secure filename
+            
             filename = secure_filename(audio_file.filename)
-            # Ensure unique filename by adding timestamp if needed
+            
             base, ext = os.path.splitext(filename)
             if not ext or ext.lower() not in ['.mp3', '.wav', '.ogg', '.m4a', '.aac']:
-                ext = '.mp3'  # Default to mp3 if no extension or invalid
+                ext = '.mp3'  
             
-            # Create unique filename
             unique_filename = f"{base}_{int(time.time())}{ext}"
             file_path_full = os.path.join(upload_dir, unique_filename)
             
-            # Save the file
+            
             audio_file.save(file_path_full)
             
-            # Store relative path for serving
+            
             file_path = f'/static/uploads/user_{get_current_user_id()}/playlist_{playlist_id}/{unique_filename}'
     
     if artist and song_title:
-        # Store song with optional file path: "Artist - Song Title|file_path" or just "Artist - Song Title"
+        
         if file_path:
             new_song = artist + ' - ' + song_title + '|' + file_path
         else:
@@ -330,13 +329,13 @@ def delete_song(playlist_id, song_index):
             songs_list.append(song)
     
     if song_index >= 0 and song_index < len(songs_list):
-        # Check if song has an uploaded file and delete it
+        
         song_to_delete = songs_list[song_index]
         pipe_index = song_to_delete.rfind('|')
         if pipe_index > 0:
             file_path = song_to_delete[pipe_index + 1:]
             if file_path.startswith('/static/'):
-                # Convert to filesystem path
+                
                 file_path_fs = file_path.replace('/static/', 'public/static/')
                 if os.path.exists(file_path_fs):
                     try:
@@ -377,7 +376,7 @@ def delete_playlist(id):
     if playlist.user_id != get_current_user_id():
         return redirect(url_for('home'))
     
-    # Delete all uploaded files for this playlist
+    
     if playlist.songs:
         songs_lines = playlist.songs.split('\n')
         for song in songs_lines:
@@ -394,11 +393,11 @@ def delete_playlist(id):
                             except Exception as e:
                                 print(f"Error deleting file {file_path_fs}: {e}")
         
-        # Try to remove the playlist upload directory if empty
+        
         upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{get_current_user_id()}', f'playlist_{id}')
         try:
             if os.path.exists(upload_dir):
-                os.rmdir(upload_dir)  # Will only remove if empty
+                os.rmdir(upload_dir)  
         except Exception as e:
             print(f"Error removing directory {upload_dir}: {e}")
     
