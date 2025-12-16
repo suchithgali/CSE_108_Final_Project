@@ -193,10 +193,14 @@ function createAudioElement() {
     });
     
     audioElement.addEventListener('ended', function() {
-        pauseSong();
+    if (isLooping) {
         currentTime = 0;
-        updateProgressBar();
-    });
+        audioElement.currentTime = 0;
+        audioElement.play();
+    } else {
+        playNextSong();
+    }
+});
     
     audioElement.addEventListener('error', function() {
         alert('Error loading audio file. Please check if the file exists.');
@@ -383,5 +387,31 @@ function toggleEditForm(commentId) {
         form.querySelector('textarea').focus();
     } else {
         form.style.display = 'none';
+    }
+}
+
+let isLooping = false;
+
+document.getElementById('loop-btn').addEventListener('click', () => {
+    isLooping = !isLooping;
+    const loopBtn = document.getElementById('loop-btn');
+    
+    if (isLooping) {
+        loopBtn.textContent = 'Loop';
+        loopBtn.classList.add('loop-active');
+    } else {
+        loopBtn.textContent = 'Loop';
+        loopBtn.classList.remove('loop-active');
+    }
+});
+
+function playNextSong() {
+    const songItems = document.querySelectorAll('.song-item');
+    let currentIndex = parseInt(document.querySelector('.song-item.playing')?.dataset.index || -1);
+    
+    if (currentIndex < songItems.length - 1) {
+        songItems[currentIndex + 1].click();
+    } else {
+        songItems[0].click();
     }
 }
