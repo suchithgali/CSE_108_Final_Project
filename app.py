@@ -38,6 +38,13 @@ class Vote(db.Model):
     playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
     value = db.Column(db.Integer, nullable=False)
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 with app.app_context():
     db.create_all()
     users = User.query.all()
@@ -213,12 +220,15 @@ def view_playlist(id):
         if song:
             songs_list.append(song)
     
+    comments = Comment.query.filter_by(playlist_id=id).order_by(Comment.created_at.desc()).all()
+    
     return render_template(
         'playlist.html',
         playlist=playlist,
         vote_count=get_vote_count(playlist),
         user_vote=get_user_vote(id),
-        songs_list=songs_list
+        songs_list=songs_list,
+        comments=comments
     )
 
 @app.route('/vote/<int:playlist_id>/<value>', methods=['POST'])
@@ -329,10 +339,30 @@ def delete_playlist(id):
         return redirect(url_for('home'))
     
     Vote.query.filter_by(playlist_id=id).delete()
+    Comment.query.filter_by(playlist_id=id).delete()
     db.session.delete(playlist)
     db.session.commit()
     
     return redirect(url_for('profile'))
+
+@app.route('/add_comment/<int:playlist_id>', methods=['POST'])
+def add_comment(playlist_id):
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    playlist = Playlist.query.get_or_404(playlist_id)
+    comment_text = request.form.get('comment', '').strip()
+    
+    if comment_text:
+        new_comment = Comment(
+            username=session['username'],
+            comment=comment_text,
+            playlist_id=playlist_id
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+    
+    return redirect(url_for('view_playlist', id=playlist_id))
 
 if __name__ == '__main__':
     app.run(debug=True)

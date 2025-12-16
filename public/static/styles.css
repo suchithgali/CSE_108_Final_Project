@@ -1003,3 +1003,112 @@ body {
         font-size: 24px;
     }
 }
+
+/* Comments Section */
+.comments-section {
+    margin-top: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.comments-section h2 {
+    color: #1db954;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.add-comment-form {
+    margin-bottom: 30px;
+}
+
+.add-comment-form textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(29, 185, 84, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+.add-comment-form textarea:focus {
+    outline: none;
+    border-color: #1db954;
+}
+
+.add-comment-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.add-comment-form button {
+    margin-top: 10px;
+}
+
+.login-prompt {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-prompt a {
+    color: #1db954;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login-prompt a:hover {
+    text-decoration: underline;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.comment-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #1db954;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.comment-username {
+    color: #1db954;
+    font-size: 16px;
+}
+
+.comment-timestamp {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+.comment-text {
+    color: #fff;
+    line-height: 1.6;
+    font-size: 14px;
+    word-wrap: break-word;
+}
+
+.no-comments {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 30px;
+    font-style: italic;
+}
