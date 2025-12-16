@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupVoteButtons();
     setupMusicPlayer();
     setupFileInput();
+    setupCommentForm();
 });
 
 function setupFileInput() {
@@ -22,6 +23,14 @@ function setupFileInput() {
                 }
             });
         }
+    }
+}
+
+
+function setupCommentForm() {
+    var commentForm = document.querySelector('.add-comment-form form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', handleCommentSubmit);
     }
 }
 
@@ -67,6 +76,60 @@ function handleVoteClick() {
     .catch(function(error) {
         console.error('Error voting:', error);
         alert('Error voting: ' + error.message);
+    });
+}
+
+
+function handleCommentSubmit(event) {
+    event.preventDefault();
+    
+    var form = event.target;
+    var formData = new FormData(form);
+    var textarea = form.querySelector('textarea');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalBtnText = submitBtn.textContent;
+    
+    // Disable form during submission
+    textarea.disabled = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting...';
+    
+    var playlistId = form.action.split('/').pop();
+    
+    fetch('/add_comment/' + playlistId, {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return null;
+        }
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(function() {
+        // Clear the textarea
+        textarea.value = '';
+        
+        // Re-enable form
+        textarea.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+        
+        // Optionally show success message
+        alert('Comment posted successfully!');
+    })
+    .catch(function(error) {
+        console.error('Error adding comment:', error);
+        alert('Error adding comment: ' + error.message);
+        
+        // Re-enable form on error
+        textarea.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
     });
 }
 
