@@ -680,11 +680,13 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     overflow: hidden;
+    transform: translateY(0);
 }
 
 .file-input-label:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(29, 185, 84, 0.4);
+    transform: translateY(-1px);
 }
 
 .file-input-button {
@@ -719,8 +721,8 @@ body {
 }
 
 .file-input:focus + .file-input-label {
-    outline: 2px solid #1db954;
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: none;
 }
 
 .file-input:valid + .file-input-label .file-input-text {
