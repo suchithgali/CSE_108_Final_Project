@@ -87,6 +87,7 @@ function handleVoteClick(e) {
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin'
+        method: 'POST'
     })
     .then(function(response) {
         if (response.status === 401) {
@@ -97,6 +98,7 @@ function handleVoteClick(e) {
             return response.json().then(function(data) {
                 throw new Error(data.error || 'Failed to vote');
             });
+            throw new Error('Network response was not ok: ' + response.status);
         }
         return response.json();
     })
