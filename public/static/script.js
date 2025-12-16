@@ -96,7 +96,6 @@ function handleVoteClick(e) {
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin'
-        method: 'POST'
     })
     .then(function(response) {
         if (response.status === 401) {
