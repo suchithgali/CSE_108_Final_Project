@@ -150,7 +150,10 @@ function handleCommentSubmit(event) {
     
     fetch('/add_comment/' + playlistId, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(function(response) {
         if (response.status === 401) {
@@ -158,21 +161,87 @@ function handleCommentSubmit(event) {
             return null;
         }
         if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.status);
+            return response.json().then(function(data) {
+                throw new Error(data.error || 'Network response was not ok: ' + response.status);
+            });
         }
-        return response.text();
+        return response.json();
     })
-    .then(function() {
+    .then(function(data) {
+        if (!data) return;
+
         // Clear the textarea
         textarea.value = '';
-        
+
+        // Insert the new comment at the top of the list
+        var commentsList = document.querySelector('.comments-list');
+        if (commentsList) {
+            var emptyState = commentsList.querySelector('.no-comments');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            var commentItem = document.createElement('div');
+            commentItem.className = 'comment-item';
+            commentItem.innerHTML = '
+                <div class="comment-header">
+                    <div class="comment-info">
+                        <strong class="comment-username"></strong>
+                        <span class="comment-timestamp"></span>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="comment-edit-btn" type="button">Edit</button>
+                        <form action="/delete_comment/' + data.id + '" method="post" style="display: inline;">
+                            <button type="submit" class="comment-delete-btn" onclick="return confirm(\'Delete this comment?\')">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                <p class="comment-text"></p>
+                <form id="edit-form-' + data.id + '" action="/edit_comment/' + data.id + '" method="post" class="edit-comment-form" style="display: none;">
+                    <textarea name="comment" required rows="3"></textarea>
+                    <div class="edit-form-buttons">
+                        <button type="submit" class="btn-primary">Save</button>
+                        <button type="button" class="btn-cancel">Cancel</button>
+                    </div>
+                </form>
+            ';
+
+            // Fill in text content safely
+            commentItem.querySelector('.comment-username').textContent = data.username;
+            commentItem.querySelector('.comment-timestamp').textContent = data.created_at;
+            commentItem.querySelector('.comment-text').textContent = data.comment;
+            var editForm = commentItem.querySelector('.edit-comment-form');
+            var editTextarea = editForm.querySelector('textarea');
+            editTextarea.value = data.comment;
+
+            // Wire up edit toggle
+            var editButton = commentItem.querySelector('.comment-edit-btn');
+            var cancelButton = commentItem.querySelector('.btn-cancel');
+            editButton.addEventListener('click', function() {
+                toggleEditForm(data.id);
+            });
+            cancelButton.addEventListener('click', function() {
+                toggleEditForm(data.id);
+            });
+
+            // Insert at top
+            commentsList.insertBefore(commentItem, commentsList.firstChild);
+        }
+
+        // Update comment count in header
+        var header = document.querySelector('.comments-section h2');
+        if (header) {
+            var match = header.textContent.match(/\((\d+)\)/);
+            if (match && match[1]) {
+                var newCount = parseInt(match[1], 10) + 1;
+                header.textContent = 'Comments (' + newCount + ')';
+            }
+        }
+
         // Re-enable form
         textarea.disabled = false;
         submitBtn.disabled = false;
         submitBtn.textContent = originalBtnText;
-        
-        // Optionally show success message
-        alert('Comment posted successfully!');
     })
     .catch(function(error) {
         console.error('Error adding comment:', error);

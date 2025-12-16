@@ -99,7 +99,12 @@
                     {% for song in songs_list %}
                         <li class="song-item" data-song="{{ song }}" data-index="{{ loop.index0 }}" data-genre="{{ playlist.genre }}">
 
-                            <div class="song-info"></div>
+                            {% set parts = song.split(' - ', 1) %}
+                            <div class="song-info">
+                                <span class="song-title">{{ parts[1] if parts|length > 1 else song }}</span>
+                                <span class="song-separator">-</span>
+                                <span class="song-artist">{{ parts[0] }}</span>
+                            </div>
 
                             {% if session.user_id == playlist.user_id %}
                                 <form action="/delete_song/{{ playlist.id }}/{{ loop.index0 }}" method="post" class="delete-song-form" onsubmit="return confirm('Are you sure you want to delete this song?')">

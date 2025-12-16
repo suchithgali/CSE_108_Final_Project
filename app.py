@@ -430,15 +430,29 @@ def add_comment(playlist_id):
     playlist = Playlist.query.get_or_404(playlist_id)
     comment_text = request.form.get('comment', '').strip()
     
-    if comment_text:
-        new_comment = Comment(
-            user_id=get_current_user_id(),
-            username=session['username'],
-            comment=comment_text,
-            playlist_id=playlist_id
-        )
-        db.session.add(new_comment)
-        db.session.commit()
+    if not comment_text:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Comment cannot be empty'}), 400
+        return redirect(url_for('view_playlist', id=playlist_id))
+    
+    new_comment = Comment(
+        user_id=get_current_user_id(),
+        username=session['username'],
+        comment=comment_text,
+        playlist_id=playlist_id
+    )
+    db.session.add(new_comment)
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'id': new_comment.id,
+            'username': new_comment.username,
+            'comment': new_comment.comment,
+            'created_at': new_comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
+            'updated': False,
+            'playlist_id': playlist_id
+        })
     
     return redirect(url_for('view_playlist', id=playlist_id))
 
