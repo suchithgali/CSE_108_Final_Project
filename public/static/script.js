@@ -37,6 +37,21 @@ function setupVoteButtons() {
     }
 }
 
+document.getElementById('next-btn').addEventListener('click', () => {
+    playNextSong();
+});
+
+function playNextSong() {
+    const songItems = document.querySelectorAll('.song-item');
+    let currentIndex = parseInt(document.querySelector('.song-item.playing')?.dataset.index || -1);
+    
+    if (currentIndex < songItems.length - 1) {
+        songItems[currentIndex + 1].click();
+    } else {
+        songItems[0].click();
+    }
+}
+
 
 function handleVoteClick() {
     var button = this;

@@ -1402,3 +1402,23 @@ body {
     color: #1db954;
     font-weight: bold;
 }
+
+.skip-btn {
+    background: #1db954;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.skip-btn:hover {
+    background: #1ed760;
+    transform: scale(1.05);
+}
