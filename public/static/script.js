@@ -42,15 +42,15 @@ function handleVoteClick() {
     var voteValue = parseInt(button.dataset.value);
     
     fetch('/vote/' + playlistId + '/' + voteValue, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        method: 'POST'
     })
     .then(function(response) {
         if (response.status === 401) {
             window.location.href = '/login';
             return null;
+        }
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
         }
         return response.json();
     })
@@ -66,6 +66,7 @@ function handleVoteClick() {
     })
     .catch(function(error) {
         console.error('Error voting:', error);
+        alert('Error voting: ' + error.message);
     });
 }
 
