@@ -8,7 +8,6 @@ import os
 app = Flask(__name__)
 app.static_folder = 'public/static'
 app.secret_key = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL', 'sqlite:///playlisthub.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = 'public/static/audio'
@@ -261,34 +260,57 @@ def view_playlist(id):
 
 @app.route('/vote/<int:playlist_id>/<value>', methods=['POST'])
 def vote(playlist_id, value):
-    value = int(value)
-    if not is_logged_in():
-        return jsonify({'error': 'Not logged in'}), 401
-    
-    if value != 1 and value != -1:
-        return jsonify({'error': 'Invalid vote'}), 400
-    
-    user_id = get_current_user_id()
-    existing_vote = Vote.query.filter_by(user_id=user_id, playlist_id=playlist_id).first()
-    
-    if existing_vote:
-        if existing_vote.value == value:
-            db.session.delete(existing_vote)
+    try:
+        value = int(value)
+        if not is_logged_in():
+            return jsonify({'error': 'Not logged in'}), 401
+        
+        if value != 1 and value != -1:
+            return jsonify({'error': 'Invalid vote'}), 400
+        
+        playlist = Playlist.query.get(playlist_id)
+        if not playlist:
+            return jsonify({'error': 'Playlist not found'}), 404
+        
+        user_id = get_current_user_id()
+        # Fetch all votes for this user/playlist to ensure we keep at most one
+        user_votes = Vote.query.filter_by(user_id=user_id, playlist_id=playlist_id).all()
+        existing_vote = user_votes[0] if user_votes else None
+        
+        # Remove any extra duplicate rows if they exist
+        if len(user_votes) > 1:
+            for dup in user_votes[1:]:
+                db.session.delete(dup)
+        
+        if existing_vote:
+            if existing_vote.value == value:
+                # Same vote clicked again: keep as-is (no change)
+                pass
+            else:
+                # Opposite vote clicked: remove current vote only (net change of 1)
+                db.session.delete(existing_vote)
         else:
-            existing_vote.value = value
-    else:
-        new_vote = Vote(user_id=user_id, playlist_id=playlist_id, value=value)
-        db.session.add(new_vote)
-    
-    db.session.commit()
-    
-    playlist = Playlist.query.get(playlist_id)
-    
-    response_data = {}
-    response_data['vote_count'] = get_vote_count(playlist)
-    response_data['user_vote'] = get_user_vote(playlist_id)
-    
-    return jsonify(response_data)
+            # No vote yet: create one
+            new_vote = Vote(user_id=user_id, playlist_id=playlist_id, value=value)
+            db.session.add(new_vote)
+        
+        db.session.commit()
+        
+        # Expire all objects to ensure fresh data
+        db.session.expire_all()
+        
+        # Re-query playlist to get fresh data
+        playlist = Playlist.query.get(playlist_id)
+        
+        # Recalculate vote count with fresh query
+        response_data = {}
+        response_data['vote_count'] = get_vote_count(playlist)
+        response_data['user_vote'] = get_user_vote(playlist_id)
+        
+        return jsonify(response_data)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/add_song/<int:playlist_id>', methods=['POST'])
 def add_song(playlist_id):

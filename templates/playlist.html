@@ -73,25 +73,27 @@
                 {% endif %}
 
                 <div class="music-player">
-                    <div class="player-controls">
-                        <button id="play-pause-btn" class="play-btn">Play</button>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progress-fill"></div>
-                            </div>
-                            <div class="time-display">
-                                <span id="current-time">0:00</span> / <span id="total-time">0:30</span>
-                            </div>
-                        </div>
-                        <div class="volume-control">
-                            <span class="volume-icon">🔊</span>
-                            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.7">
-                        </div>
-                    </div>
-                    <div class="now-playing">
-                        <span id="current-song">Select a song to play</span>
-                    </div>
-                </div>
+    <div class="player-controls">
+        <button id="play-pause-btn" class="play-btn">Play</button>
+        <button id="next-btn" class="skip-btn">Skip ⏭</button>
+        <button id="loop-btn" class="loop-btn">Loop</button>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="time-display">
+                <span id="current-time">0:00</span> / <span id="total-time">0:30</span>
+            </div>
+        </div>
+        <div class="volume-control">
+            <span class="volume-icon">🔊</span>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.7">
+        </div>
+    </div>
+    <div class="now-playing">
+        <span id="current-song">Select a song to play</span>
+    </div>
+</div>
 
                 <ol class="songs-playlist">
                     {% for song in songs_list %}
@@ -136,9 +138,9 @@
                                     <div class="comment-info">
                                         <strong class="comment-username">{{ comment.username }}</strong>
                                         <span class="comment-timestamp">{{ comment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
-                                        {% if comment.updated_at != comment.created_at %}
-                                            <span class="comment-edited">(edited)</span>
-                                        {% endif %}
+                                        {% if comment.updated_at and (comment.updated_at - comment.created_at).total_seconds() > 1 %}
+    <span class="comment-edited">(edited)</span>
+{% endif %}
                                     </div>
                                     {% if session.user_id == comment.user_id %}
                                         <div class="comment-actions">

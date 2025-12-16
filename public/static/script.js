@@ -44,13 +44,58 @@ function setupVoteButtons() {
     }
 }
 
+document.getElementById('next-btn').addEventListener('click', () => {
+    playNextSong();
+});
 
-function handleVoteClick() {
+function playNextSong() {
+    const songItems = document.querySelectorAll('.song-item');
+    let currentIndex = parseInt(document.querySelector('.song-item.playing')?.dataset.index || -1);
+    
+    if (currentIndex < songItems.length - 1) {
+        songItems[currentIndex + 1].click();
+    } else {
+        songItems[0].click();
+    }
+}
+
+
+function handleVoteClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
     var button = this;
     var playlistId = button.dataset.id;
     var voteValue = parseInt(button.dataset.value);
     
+    if (!playlistId || isNaN(voteValue)) {
+        console.error('Invalid vote data:', { playlistId: playlistId, voteValue: voteValue });
+        return;
+    }
+    
+    // Check if button is already disabled
+    if (button.disabled) {
+        return;
+    }
+    
+    // Check if user already voted this way by checking the voted class
+    // If upvote button has voted class and user clicks upvote, prevent
+    // If downvote button has voted class and user clicks downvote, prevent
+    if (button.classList.contains('voted')) {
+        return;
+    }
+    
+    // Disable button during request to prevent multiple clicks
+    button.disabled = true;
+    var originalCursor = button.style.cursor;
+    button.style.cursor = 'not-allowed';
+    
     fetch('/vote/' + playlistId + '/' + voteValue, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
         method: 'POST'
     })
     .then(function(response) {
@@ -59,6 +104,9 @@ function handleVoteClick() {
             return null;
         }
         if (!response.ok) {
+            return response.json().then(function(data) {
+                throw new Error(data.error || 'Failed to vote');
+            });
             throw new Error('Network response was not ok: ' + response.status);
         }
         return response.json();
@@ -76,6 +124,11 @@ function handleVoteClick() {
     .catch(function(error) {
         console.error('Error voting:', error);
         alert('Error voting: ' + error.message);
+    })
+    .finally(function() {
+        // Re-enable button after request completes
+        button.disabled = false;
+        button.style.cursor = originalCursor;
     });
 }
 
@@ -146,6 +199,7 @@ function updateVoteDisplay(playlistId, voteCount, userVote) {
     
     if (upvoteBtn) {
         upvoteBtn.classList.remove('voted');
+        upvoteBtn.disabled = false;
         if (userVote === 1) {
             upvoteBtn.classList.add('voted');
         }
@@ -153,6 +207,7 @@ function updateVoteDisplay(playlistId, voteCount, userVote) {
     
     if (downvoteBtn) {
         downvoteBtn.classList.remove('voted');
+        downvoteBtn.disabled = false;
         if (userVote === -1) {
             downvoteBtn.classList.add('voted');
         }
@@ -240,10 +295,14 @@ function createAudioElement() {
     });
     
     audioElement.addEventListener('ended', function() {
-        pauseSong();
+    if (isLooping) {
         currentTime = 0;
-        updateProgressBar();
-    });
+        audioElement.currentTime = 0;
+        audioElement.play();
+    } else {
+        playNextSong();
+    }
+});
     
     audioElement.addEventListener('error', function() {
         alert('Error loading audio file. Please check if the file exists.');
@@ -430,5 +489,31 @@ function toggleEditForm(commentId) {
         form.querySelector('textarea').focus();
     } else {
         form.style.display = 'none';
+    }
+}
+
+let isLooping = false;
+
+document.getElementById('loop-btn').addEventListener('click', () => {
+    isLooping = !isLooping;
+    const loopBtn = document.getElementById('loop-btn');
+    
+    if (isLooping) {
+        loopBtn.textContent = 'Loop';
+        loopBtn.classList.add('loop-active');
+    } else {
+        loopBtn.textContent = 'Loop';
+        loopBtn.classList.remove('loop-active');
+    }
+});
+
+function playNextSong() {
+    const songItems = document.querySelectorAll('.song-item');
+    let currentIndex = parseInt(document.querySelector('.song-item.playing')?.dataset.index || -1);
+    
+    if (currentIndex < songItems.length - 1) {
+        songItems[currentIndex + 1].click();
+    } else {
+        songItems[0].click();
     }
 }

@@ -164,8 +164,13 @@ body {
     transition: color 0.3s;
 }
 
-.vote-btn:hover {
+.vote-btn:hover:not(:disabled) {
     color: #1db954;
+}
+
+.vote-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .vote-btn.voted.upvote {
@@ -173,6 +178,14 @@ body {
 }
 
 .vote-btn.voted.downvote {
+    color: #e74c3c;
+}
+
+.vote-btn.voted.upvote:hover:not(:disabled) {
+    color: #1db954;
+}
+
+.vote-btn.voted.downvote:hover:not(:disabled) {
     color: #e74c3c;
 }
 
@@ -523,7 +536,6 @@ body {
     transition: all 0.3s;
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 
 .play-btn:hover {
@@ -1419,4 +1431,52 @@ body {
     left: 0;
     color: #1db954;
     font-weight: bold;
+}
+
+.skip-btn {
+    background: #1db954;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.skip-btn:hover {
+    background: #1ed760;
+    transform: scale(1.05);
+}
+
+.loop-btn {
+    background: #1db954;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.loop-btn:hover {
+    background: #014217;
+    transform: scale(1.05);
+}
+
+.loop-btn.loop-active {
+    background-color: #014217;
+}
+
+.loop-btn.loop-active:hover {
+    background-color: #1db954;
 }
