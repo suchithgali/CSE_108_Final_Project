@@ -672,7 +672,21 @@ body {
 .file-input-wrapper {
     position: relative;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
 }
+
+.add-song-form .form-group .file-input-wrapper {
+    margin-top: auto;
+    margin-bottom: 0;
+}
+
+.add-song-form .form-group label[for="music_file"] {
+    margin-top: 17px;
+}
+
 
 .file-input {
     position: absolute;
@@ -684,59 +698,63 @@ body {
 }
 
 .file-input-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
     padding: 0;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #1db954;
+    border: none;
     border-radius: 8px;
-    color: #e0e0e0;
+    color: white;
     font-size: 14px;
     min-width: 200px;
     height: 40px;
     box-sizing: border-box;
     cursor: pointer;
     transition: all 0.3s ease;
-    overflow: hidden;
     transform: translateY(0);
+    margin-top: 38px;
 }
 
 .file-input-label:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(29, 185, 84, 0.4);
+    background: #1aa34a;
     transform: translateY(-1px);
 }
 
 .file-input-button {
-    background: #1db954;
+    background: transparent;
     color: white;
-    padding: 0 16px;
+    padding: 0;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     white-space: nowrap;
+    text-transform: uppercase;
     transition: background 0.3s ease;
-    flex-shrink: 0;
-    border-radius: 8px 0 0 8px;
-}
-
-.file-input-label:hover .file-input-button {
-    background: #1aa34a;
+    width: 100%;
 }
 
 .file-input-text {
-    flex: 1;
     color: #888;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding-right: 15px;
-    min-width: 120px;
-    font-size: 14px;
+    padding: 5px 0;
+    font-size: 13px;
+    text-align: center;
+    transition: color 0.3s ease;
+    visibility: visible;
+    opacity: 1;
+    min-height: 20px;
+    display: block;
+}
+
+.file-input-text.has-file {
+    color: #e0e0e0 !important;
+    font-weight: 500;
 }
 
 .file-input:focus + .file-input-label {

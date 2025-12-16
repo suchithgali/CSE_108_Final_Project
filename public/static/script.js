@@ -7,22 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupFileInput() {
     var fileInput = document.getElementById('music_file');
     if (fileInput) {
-        var fileInputLabel = document.querySelector('label[for="music_file"]');
-        if (fileInputLabel) {
-            var fileInputText = fileInputLabel.querySelector('.file-input-text');
-            
-            if (fileInputText) {
-                fileInput.addEventListener('change', function() {
-                    if (this.files && this.files.length > 0) {
-                        var fileName = this.files[0].name;
-                        fileInputText.textContent = fileName;
-                        fileInputText.classList.add('has-file');
-                    } else {
-                        fileInputText.textContent = 'No file chosen';
-                        fileInputText.classList.remove('has-file');
-                    }
-                });
-            }
+        var fileInputWrapper = fileInput.parentElement;
+        var fileInputText = fileInputWrapper.querySelector('.file-input-text');
+        
+        if (fileInputText) {
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    var fileName = this.files[0].name;
+                    fileInputText.textContent = fileName;
+                    fileInputText.classList.add('has-file');
+                } else {
+                    fileInputText.textContent = 'No file chosen';
+                    fileInputText.classList.remove('has-file');
+                }
+            });
         }
     }
 }
