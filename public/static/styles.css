@@ -164,8 +164,13 @@ body {
     transition: color 0.3s;
 }
 
-.vote-btn:hover {
+.vote-btn:hover:not(:disabled) {
     color: #1db954;
+}
+
+.vote-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .vote-btn.voted.upvote {
@@ -173,6 +178,14 @@ body {
 }
 
 .vote-btn.voted.downvote {
+    color: #e74c3c;
+}
+
+.vote-btn.voted.upvote:hover:not(:disabled) {
+    color: #1db954;
+}
+
+.vote-btn.voted.downvote:hover:not(:disabled) {
     color: #e74c3c;
 }
 

@@ -36,21 +36,52 @@ function setupVoteButtons() {
 }
 
 
-function handleVoteClick() {
+function handleVoteClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
     var button = this;
     var playlistId = button.dataset.id;
     var voteValue = parseInt(button.dataset.value);
+    
+    if (!playlistId || isNaN(voteValue)) {
+        console.error('Invalid vote data:', { playlistId: playlistId, voteValue: voteValue });
+        return;
+    }
+    
+    // Check if button is already disabled
+    if (button.disabled) {
+        return;
+    }
+    
+    // Check if user already voted this way by checking the voted class
+    // If upvote button has voted class and user clicks upvote, prevent
+    // If downvote button has voted class and user clicks downvote, prevent
+    if (button.classList.contains('voted')) {
+        return;
+    }
+    
+    // Disable button during request to prevent multiple clicks
+    button.disabled = true;
+    var originalCursor = button.style.cursor;
+    button.style.cursor = 'not-allowed';
     
     fetch('/vote/' + playlistId + '/' + voteValue, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'same-origin'
     })
     .then(function(response) {
         if (response.status === 401) {
             window.location.href = '/login';
             return null;
+        }
+        if (!response.ok) {
+            return response.json().then(function(data) {
+                throw new Error(data.error || 'Failed to vote');
+            });
         }
         return response.json();
     })
@@ -66,6 +97,12 @@ function handleVoteClick() {
     })
     .catch(function(error) {
         console.error('Error voting:', error);
+        alert('Error voting: ' + error.message);
+    })
+    .finally(function() {
+        // Re-enable button after request completes
+        button.disabled = false;
+        button.style.cursor = originalCursor;
     });
 }
 
@@ -82,6 +119,7 @@ function updateVoteDisplay(playlistId, voteCount, userVote) {
     
     if (upvoteBtn) {
         upvoteBtn.classList.remove('voted');
+        upvoteBtn.disabled = false;
         if (userVote === 1) {
             upvoteBtn.classList.add('voted');
         }
@@ -89,6 +127,7 @@ function updateVoteDisplay(playlistId, voteCount, userVote) {
     
     if (downvoteBtn) {
         downvoteBtn.classList.remove('voted');
+        downvoteBtn.disabled = false;
         if (userVote === -1) {
             downvoteBtn.classList.add('voted');
         }
