@@ -1,17 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.static_folder = 'public/static'
 app.secret_key = 'your-secret-key-here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///playlisthub.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['UPLOAD_FOLDER'] = 'public/static/audio'
 
 db = SQLAlchemy(app)
 
 GENRES = ['Pop', 'Hip-Hop', 'Rock', 'Electronic', 'R&B', 'Country', 'Jazz', 'Classical', 'Indie', 'K-Pop']
+ALLOWED_EXTENSIONS = {'mp3'}
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,10 +45,12 @@ class Vote(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     username = db.Column(db.String(80), nullable=False)
     comment = db.Column(db.Text, nullable=False)
     playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
@@ -87,6 +94,24 @@ def is_logged_in():
         return True
     else:
         return False
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_genre_folder(genre):
+    genre_map = {
+        'Pop': 'pop',
+        'Hip-Hop': 'hiphop',
+        'Rock': 'rock',
+        'Electronic': 'electronic',
+        'R&B': 'rb',
+        'Country': 'country',
+        'Jazz': 'jazz',
+        'Classical': 'classical',
+        'Indie': 'indie',
+        'K-Pop': 'kpop'
+    }
+    return genre_map.get(genre, 'pop')
 
 def get_current_user_id():
     return session.get('user_id')
@@ -150,11 +175,12 @@ def login():
         all_users = User.query.all()
         users = []
         for u in all_users:
-            user_dict = {}
-            user_dict['username'] = u.username
-            user_dict['password'] = u.password
-            user_dict['plain_password'] = u.plain_password
-            users.append(user_dict)
+            if u.username and u.username.lower() == 'kanye_lover3000':
+                continue
+            users.append({
+                'username': u.username,
+                'plain_password': u.plain_password
+            })
         return render_template('login.html', user=user, users=users)
     
     username = request.form['username']
@@ -168,14 +194,16 @@ def login():
             session['username'] = user.username
             return redirect(url_for('home'))
     
+    # Rebuild users list for display on failed login, excluding Kanye_Lover3000
     all_users = User.query.all()
     users = []
     for u in all_users:
-        user_dict = {}
-        user_dict['username'] = u.username
-        user_dict['password'] = u.password
-        user_dict['plain_password'] = u.plain_password
-        users.append(user_dict)
+        if u.username and u.username.lower() == 'kanye_lover3000':
+            continue
+        users.append({
+            'username': u.username,
+            'plain_password': u.plain_password
+        })
     return render_template('login.html', error='Invalid username or password', users=users)
 
 @app.route('/logout')
@@ -278,6 +306,22 @@ def add_song(playlist_id):
     if artist and song_title:
         new_song = artist + ' - ' + song_title
         
+        # Handle file upload if provided
+        if 'music_file' in request.files:
+            file = request.files['music_file']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = f"{artist} - {song_title}.mp3"
+                # Use secure_filename but preserve the format
+                filename = secure_filename(filename).replace('_', ' ')
+                
+                genre_folder = get_genre_folder(playlist.genre)
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], genre_folder)
+                
+                os.makedirs(upload_path, exist_ok=True)
+                
+                file_path = os.path.join(upload_path, filename)
+                file.save(file_path)
+        
         if playlist.songs:
             playlist.songs = playlist.songs + '\n' + new_song
         else:
@@ -346,6 +390,102 @@ def delete_playlist(id):
     return redirect(url_for('profile'))
 
 @app.route('/add_comment/<int:playlist_id>', methods=['POST'])
+def add_comment(playlist_id):
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    playlist = Playlist.query.get_or_404(playlist_id)
+    comment_text = request.form.get('comment', '').strip()
+    
+    if comment_text:
+        new_comment = Comment(
+            user_id=get_current_user_id(),
+            username=session['username'],
+            comment=comment_text,
+            playlist_id=playlist_id
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+    
+    return redirect(url_for('view_playlist', id=playlist_id))
+
+@app.route('/edit_comment/<int:comment_id>', methods=['POST'])
+def edit_comment(comment_id):
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.user_id != get_current_user_id():
+        return redirect(url_for('home'))
+    
+    comment_text = request.form.get('comment', '').strip()
+    if comment_text:
+        comment.comment = comment_text
+        db.session.commit()
+    
+    return redirect(url_for('view_playlist', id=comment.playlist_id))
+
+@app.route('/delete_comment/<int:comment_id>', methods=['POST'])
+def delete_comment(comment_id):
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.user_id != get_current_user_id():
+        return redirect(url_for('home'))
+    
+    playlist_id = comment.playlist_id
+    db.session.delete(comment)
+    db.session.commit()
+    
+    return redirect(url_for('view_playlist', id=playlist_id))
+
+@app.route('/upload_music', methods=['GET', 'POST'])
+def upload_music():
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    if request.method == 'GET':
+        return render_template('upload_music.html', genres=GENRES)
+    
+    if 'music_file' not in request.files:
+        flash('No file selected')
+        return redirect(request.url)
+    
+    file = request.files['music_file']
+    artist = request.form.get('artist', '').strip()
+    song_title = request.form.get('song_title', '').strip()
+    genre = request.form.get('genre', 'Pop')
+    
+    if file.filename == '':
+        flash('No file selected')
+        return redirect(request.url)
+    
+    if not artist or not song_title:
+        flash('Please provide both artist and song title')
+        return redirect(request.url)
+    
+    if file and allowed_file(file.filename):
+        filename = f"{artist} - {song_title}.mp3"
+        # Use secure_filename but preserve spaces
+        filename = secure_filename(filename).replace('_', ' ')
+        
+        genre_folder = get_genre_folder(genre)
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], genre_folder)
+        
+        os.makedirs(upload_path, exist_ok=True)
+        
+        file_path = os.path.join(upload_path, filename)
+        file.save(file_path)
+        
+        flash(f'Successfully uploaded: {artist} - {song_title}')
+        return redirect(url_for('upload_music'))
+    else:
+        flash('Invalid file type. Please upload an MP3 file.')
+        return redirect(request.url)
+
 def add_comment(playlist_id):
     if not is_logged_in():
         return redirect(url_for('login'))

@@ -274,6 +274,11 @@ body {
     font-size: 16px;
 }
 
+.form-group select option {
+    background: #fff;
+    color: #000;
+}
+
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
     outline: none;
     border-color: #1db954;
@@ -347,6 +352,25 @@ body {
 .account-info p {
     margin: 2px 0;
     font-size: 14px;
+}
+
+/* Test accounts inside login box */
+.test-accounts {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.test-accounts h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #1db954;
+}
+
+.test-accounts hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin: 10px 0;
 }
 
 .error-msg {
@@ -596,9 +620,10 @@ body {
 }
 
 .add-song-form {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
     gap: 15px;
-    align-items: center;
+    align-items: flex-end;
 }
 
 .form-group {
@@ -623,7 +648,6 @@ body {
     border-radius: 8px;
     color: #e0e0e0;
     font-size: 14px;
-    min-width: 200px;
     height: 40px;
     box-sizing: border-box;
 }
@@ -632,8 +656,37 @@ body {
     color: #888;
 }
 
+.add-song-form input[type="file"] {
+    padding: 0;
+    background: transparent;
+    border: none;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-song-form input[type="file"]::file-selector-button {
+    background: #1db954;
+    color: white;
+    padding: 10px 30px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    height: auto;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.add-song-form input[type="file"]::file-selector-button:hover {
+    background: #1aa34a;
+    transform: translateY(-1px);
+}
+
 .add-song-form button {
-    padding: 10px 20px;
+    padding: 10px 30px;
     background: #1db954;
     color: white;
     border: none;
@@ -643,11 +696,16 @@ body {
     transition: all 0.3s ease;
     height: 40px;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .add-song-form button:hover {
     background: #1aa34a;
     transform: translateY(-1px);
+}
+
+.file-help {
+    display: none;
 }
 
 .song-item {
@@ -1089,6 +1147,13 @@ body {
     gap: 10px;
 }
 
+.comment-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .comment-username {
     color: #1db954;
     font-size: 16px;
@@ -1097,6 +1162,108 @@ body {
 .comment-timestamp {
     color: rgba(255, 255, 255, 0.6);
     font-size: 13px;
+}
+
+.comment-edited {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    font-style: italic;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-edit-btn, .comment-delete-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.comment-edit-btn {
+    background: #1db954;
+    color: white;
+}
+
+.comment-edit-btn:hover {
+    background: #1aa34a;
+    transform: translateY(-1px);
+}
+
+.comment-delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.comment-delete-btn:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.edit-comment-form {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.edit-comment-form textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(29, 185, 84, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    transition: border-color 0.3s;
+    margin-bottom: 10px;
+}
+
+.edit-comment-form textarea:focus {
+    outline: none;
+    border-color: #1db954;
+}
+
+.edit-form-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-form-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.edit-form-buttons .btn-primary {
+    background: #1db954;
+    color: white;
+    width: auto;
+}
+
+.edit-form-buttons .btn-primary:hover {
+    background: #1aa34a;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: auto;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .comment-text {
@@ -1111,4 +1278,78 @@ body {
     color: rgba(255, 255, 255, 0.5);
     padding: 30px;
     font-style: italic;
+}
+
+/* Upload Music Page */
+.upload-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.file-input {
+    padding: 10px !important;
+    cursor: pointer;
+}
+
+.file-input::-webkit-file-upload-button {
+    background: #1db954;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.file-input::-webkit-file-upload-button:hover {
+    background: #1ed760;
+}
+
+.file-help {
+    display: none;
+}
+
+.flash-messages {
+    margin-bottom: 20px;
+}
+
+.flash-message {
+    padding: 15px;
+    background: rgba(29, 185, 84, 0.2);
+    border-left: 4px solid #1db954;
+    border-radius: 5px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.upload-info {
+    margin-top: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.upload-info h3 {
+    color: #1db954;
+    margin-bottom: 15px;
+}
+
+.upload-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.upload-info li {
+    padding: 10px 0;
+    padding-left: 25px;
+    position: relative;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.upload-info li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #1db954;
+    font-weight: bold;
 }

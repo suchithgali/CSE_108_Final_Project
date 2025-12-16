@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Music - PlaylistHub</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">PlaylistHub</a>
+        <div class="nav-links">
+            <a href="/create">+ Create Playlist</a>
+            <a href="/profile">My Profile</a>
+            <a href="/upload_music">Upload Music</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="form-container">
+
+            <h1>Upload Music</h1>
+            <p class="form-subtitle">Upload MP3 files to make them available for playlists</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+                
+                <div class="form-group">
+                    <label for="artist">Artist Name</label>
+                    <input type="text" id="artist" name="artist" placeholder="e.g., Taylor Swift" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="song_title">Song Title</label>
+                    <input type="text" id="song_title" name="song_title" placeholder="e.g., Anti-Hero" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <select id="genre" name="genre" required>
+                        {% for genre in genres %}
+                            <option value="{{ genre }}">{{ genre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="music_file">MP3 File (Max 16MB)</label>
+                    <input type="file" id="music_file" name="music_file" accept=".mp3" required class="file-input">
+                </div>
+
+                <button type="submit" class="btn-primary">Upload Song</button>
+
+            </form>
+
+            <div class="upload-info">
+                <h3>📝 How it works:</h3>
+                <ul>
+                    <li>Upload MP3 files with artist and song information</li>
+                    <li>Files are saved as "Artist - Song Title.mp3"</li>
+                    <li>When users add matching songs to playlists, they'll play automatically</li>
+                    <li>Supported genres: Pop, Hip-Hop, R&B, K-Pop, and more</li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

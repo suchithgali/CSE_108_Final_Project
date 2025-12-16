@@ -336,3 +336,13 @@ function getAudioFilePath(songTitle, genre) {
     
     return '/static/audio/' + genreFolder + '/' + fileName + '.mp3';
 }
+
+function toggleEditForm(commentId) {
+    var form = document.getElementById('edit-form-' + commentId);
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        form.querySelector('textarea').focus();
+    } else {
+        form.style.display = 'none';
+    }
+}

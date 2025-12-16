@@ -48,7 +48,7 @@
 
                 {% if session.user_id == playlist.user_id %}
                     <div class="playlist-actions">
-                        <form action="/add_song/{{ playlist.id }}" method="post" class="add-song-form">
+                        <form action="/add_song/{{ playlist.id }}" method="post" enctype="multipart/form-data" class="add-song-form">
                             <div class="form-group">
                                 <label for="artist">Artist:</label>
                                 <input type="text" id="artist" name="artist" placeholder="e.g. Wham!" required>
@@ -56,6 +56,11 @@
                             <div class="form-group">
                                 <label for="song_title">Song:</label>
                                 <input type="text" id="song_title" name="song_title" placeholder="e.g. Last Christmas" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="music_file">MP3 File (Optional):</label>
+                                <input type="file" id="music_file" name="music_file" accept=".mp3" class="file-input">
+                                <small class="file-help">Upload an MP3 file for this song (max 16MB)</small>
                             </div>
                             <button type="submit" class="btn-primary">Add Song</button>
                         </form>
@@ -123,10 +128,33 @@
                         {% for comment in comments %}
                             <div class="comment-item">
                                 <div class="comment-header">
-                                    <strong class="comment-username">{{ comment.username }}</strong>
-                                    <span class="comment-timestamp">{{ comment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                                    <div class="comment-info">
+                                        <strong class="comment-username">{{ comment.username }}</strong>
+                                        <span class="comment-timestamp">{{ comment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                                        {% if comment.updated_at != comment.created_at %}
+                                            <span class="comment-edited">(edited)</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if session.user_id == comment.user_id %}
+                                        <div class="comment-actions">
+                                            <button class="comment-edit-btn" onclick="toggleEditForm({{ comment.id }})">Edit</button>
+                                            <form action="/delete_comment/{{ comment.id }}" method="post" style="display: inline;">
+                                                <button type="submit" class="comment-delete-btn" onclick="return confirm('Delete this comment?')">Delete</button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 <p class="comment-text">{{ comment.comment }}</p>
+                                
+                                {% if session.user_id == comment.user_id %}
+                                    <form id="edit-form-{{ comment.id }}" action="/edit_comment/{{ comment.id }}" method="post" class="edit-comment-form" style="display: none;">
+                                        <textarea name="comment" required rows="3">{{ comment.comment }}</textarea>
+                                        <div class="edit-form-buttons">
+                                            <button type="submit" class="btn-primary">Save</button>
+                                            <button type="button" class="btn-cancel" onclick="toggleEditForm({{ comment.id }})">Cancel</button>
+                                        </div>
+                                    </form>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     {% else %}

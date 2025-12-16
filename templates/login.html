@@ -36,22 +36,27 @@
 
             </form>
             
-            <div class="profile-info">
+            {% if users %}
+            <div class="test-accounts">
                 <h2>All Test Accounts</h2>
-                {% for account in users %}
-                    <div class="account-info">
-                        <p><strong>Username:</strong> {{ account.username }}</p>
-                        <p><strong>Password:</strong> {{ account.plain_password or 'Not available' }}</p>
-                    </div>
-                    {% if not loop.last %}<hr>{% endif %}
-                {% endfor %}
+                <div class="test-accounts-list">
+                    {% for account in users %}
+                        <div class="account-info">
+                            <p><strong>Username:</strong> {{ account.username }}</p>
+                            <p><strong>Password:</strong> {{ account.plain_password or 'Not available' }}</p>
+                        </div>
+                        {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                </div>
             </div>
-            
+            {% endif %}
+
             <p class="auth-switch">Don't have an account? <a href="/signup">Sign up</a></p>
 
         </div>
     </div>
 
-    <script>console.log("Users data:", {{ users | tojson }})</script>
+    
+
 </body>
 </html>
