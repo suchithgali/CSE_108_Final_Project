@@ -136,9 +136,9 @@
                                     <div class="comment-info">
                                         <strong class="comment-username">{{ comment.username }}</strong>
                                         <span class="comment-timestamp">{{ comment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
-                                        {% if comment.updated_at != comment.created_at %}
-                                            <span class="comment-edited">(edited)</span>
-                                        {% endif %}
+                                        {% if comment.updated_at and comment.updated_at != comment.created_at %}
+    <span class="comment-edited">(edited)</span>
+{% endif %}
                                     </div>
                                     {% if session.user_id == comment.user_id %}
                                         <div class="comment-actions">
